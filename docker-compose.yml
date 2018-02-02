@@ -1,0 +1,11 @@
+version: "2"
+services:
+  app:
+    build: .
+    image: keboola/thoughtspot-writer
+    volumes:
+      - .:/code
+    working_dir: /code
+    tty: true
+    stdin_open: true
+    command: "/bin/bash"
