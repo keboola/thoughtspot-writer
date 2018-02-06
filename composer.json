@@ -1,0 +1,24 @@
+{
+  "name": "keboola/thoughtspot-writer",
+  "license": "MIT",
+  "type": "project",
+  "description": "Keboola Thoughtspot DB Writer",
+  "keywords": ["keboola", "thoughtspot", "db", "writer"],
+  "authors": [
+    {
+      "name": "Miroslav Čillík",
+      "email": "miro@keboola.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.2",
+    "keboola/db-writer-common": "^3.0"
+  },
+  "require-dev": {
+  },
+  "autoload": {
+    "psr-4": {
+      "Keboola\\": "src/Keboola/"
+    }
+  }
+}

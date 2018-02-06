@@ -9,8 +9,14 @@ RUN apt-get install -y wget curl make git bzip2 time libzip-dev zip unzip openss
 # Driver
 ADD . /code
 WORKDIR /code
-RUN tar -xvf driver/ThoughtSpot_odbc_linux_3.4.tar
+
+# @todo: maybe save driver to our S3?
+RUN wget -O thoughtspot_odbc_linux.tar.gz https://thoughtspot.egnyte.com/dd/hFbkjmVbDZ
+RUN gzip -f thoughtspot_odbc_linux.tar.gz
+RUN tar -xvf thoughtspot_odbc_linux.tar
 ENV LD_LIBRARY_PATH="/code/linux/Lib/Linux_x8664"
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+RUN cp driver/*.ini /etc/
 
 # PHP
 RUN docker-php-ext-install pdo
@@ -23,8 +29,17 @@ RUN set -x \
     && docker-php-ext-install odbc \
     && docker-php-source delete
 
-RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
-RUN cp driver/*.ini /etc/
+# Composer
+WORKDIR /root
+RUN cd \
+  && curl -sS https://getcomposer.org/installer | php \
+  && ln -s /root/composer.phar /usr/local/bin/composer
 
+# Main
+ADD . /code
+WORKDIR /code
+RUN echo "memory_limit = -1" >> /usr/local/etc/php/php.ini
+RUN echo "date.timezone = \"Europe/Prague\"" >> /usr/local/etc/php/php.ini
+RUN composer selfupdate && composer install --no-interaction
 
-
+CMD php ./run.php --data=/data

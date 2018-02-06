@@ -4,3 +4,4 @@ composer.phar
 linux/**
 .env
 driver/ThoughtSpot_odbc_linux_3.4.tar
+thoughtspot_odbc_linux.tar
