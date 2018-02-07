@@ -2,14 +2,12 @@
 
 namespace Keboola\ThoughtSpot;
 
+use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Logger;
 use Keboola\DbWriter\Test\BaseTest;
 
 class WriterTest extends BaseTest
 {
-    /** @var Writer */
-    private $writer;
-
     private $config;
 
     public function setUp()
@@ -25,6 +23,57 @@ class WriterTest extends BaseTest
         $this->assertNotNull($conn);
     }
 
+    // @todo Can't test CREATE TABLE, because we cant DROP the table :/
+//    public function testCreate()
+//    {
+//        $writer = $this->getWriter($this->config['parameters']['db']);
+//        /** @var Connection $conn */
+//        $conn = $writer->getConnection();
+//
+//        $writer->create([
+//            'tableId' => 'country',
+//            'dbName' => 'country',
+//            'export' => true,
+//            'incremental' => true,
+//            'primaryKey' => ['id'],
+//            'items' => [
+//                [
+//                    'name' => 'id',
+//                    'dbName' => 'id',
+//                    'type' => 'int',
+//                    'size' => null,
+//                    'nullable' => null,
+//                    'default' => null
+//                ],
+//                [
+//                    'name' => 'name',
+//                    'dbName' => 'name',
+//                    'type' => 'varchar',
+//                    'size' => 255,
+//                    'nullable' => null,
+//                    'default' => null
+//                ]
+//            ]
+//        ]);
+//
+//        $res = $conn->fetchAll("SELECT * FROM country");
+//    }
+
+    public function testWrite()
+    {
+        $writer = $this->getWriter($this->config['parameters']['db']);
+        /** @var Connection $conn */
+        $conn = $writer->getConnection();
+
+        $csvFile = new CsvFile(ROOT_PATH . '/tests/data/countries.csv');
+
+        $writer->write($csvFile, ['dbName' => 'country']);
+
+        $res = $conn->fetchAll("SELECT id, name FROM country");
+
+        var_dump($res);
+    }
+
     private function initConfig()
     {
         $config = [];
@@ -38,11 +87,8 @@ class WriterTest extends BaseTest
         return $config;
     }
 
-    private function dropAllTables($config)
+    protected function getWriter($dbParams)
     {
-        $tables = $config['parameters']['tables'];
-        foreach ($tables as $table) {
-            $this->writer->drop($table['dbName']);
-        }
+        return new Writer($dbParams, new Logger(APP_NAME));
     }
 }
