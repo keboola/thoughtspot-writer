@@ -1,13 +1,12 @@
 <?php
 
-use Keboola\DbWriter\Application;
 use Keboola\DbWriter\Exception\ApplicationException;
 use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Logger;
-use Keboola\DbWriter\Pgsql\Configuration\ConfigDefinition;
-use Monolog\Handler\NullHandler;
+use Keboola\Thoughtspot\Application;
+use Keboola\ThoughtSpot\Configuration\ConfigLoader;
 
-define('APP_NAME', 'thoughtspot-writer');
+define('APP_NAME', 'wr-thoughtspot');
 define('ROOT_PATH', __DIR__);
 
 require_once(dirname(__FILE__) . "/vendor/keboola/db-writer-common/bootstrap.php");
@@ -17,21 +16,14 @@ $logger = new Logger(APP_NAME);
 $action = 'run';
 
 try {
-    $arguments = getopt("d::", ["data::"]);
+    $arguments = getopt('d::', ['data::']);
     if (!isset($arguments["data"])) {
         throw new UserException('Data folder not set.');
     }
-    $config = json_decode(file_get_contents($arguments["data"] . "/config.json"), true);
-    $config['parameters']['data_dir'] = $arguments['data'];
-    $config['parameters']['writer_class'] = 'Pgsql';
+    $config = ConfigLoader::load($arguments['data'] . '/config.json');
+    $action = $config['action'];
 
-    $action = isset($config['action']) ? $config['action'] : $action;
-
-    $app = new Application($config, $logger, new ConfigDefinition());
-
-    if ($action !== 'run') {
-        $app['logger']->setHandlers(array(new NullHandler(Logger::INFO)));
-    }
+    $app = new Application($config, $logger);
 
     echo json_encode($app->run());
 } catch (UserException $e) {

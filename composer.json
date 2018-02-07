@@ -12,7 +12,8 @@
   ],
   "require": {
     "php": ">=7.2",
-    "keboola/db-writer-common": "^3.0"
+    "keboola/db-writer-common": "^3.0",
+    "phpunit/phpunit": "^7.0"
   },
   "require-dev": {
   },
