@@ -8,4 +8,4 @@ services:
     working_dir: /code
     tty: true
     stdin_open: true
-    command: "/bin/bash"
+    command: "./vendor/bin/phpunit"
