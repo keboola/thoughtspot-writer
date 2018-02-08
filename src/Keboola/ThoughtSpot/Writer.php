@@ -34,7 +34,7 @@ class Writer extends BaseWriter implements WriterInterface
             "sshpass -p%s ssh -oStrictHostKeyChecking=no %s@%s '%s'",
             $this->dbParams['ssh']['password'],
             $this->dbParams['ssh']['user'],
-            $this->dbParams['ssh']['remoteHost'],
+            $this->dbParams['host'],
             $cmd
         ));
 
@@ -60,7 +60,7 @@ class Writer extends BaseWriter implements WriterInterface
             $this->dbParams['ssh']['password'],
             $csv->getFileInfo()->getPathname(),
             $this->dbParams['ssh']['user'],
-            $this->dbParams['ssh']['remoteHost'],
+            $this->dbParams['host'],
             $dstFile
         ));
         $process->setTimeout(3600);
