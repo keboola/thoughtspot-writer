@@ -1,5 +1,21 @@
 version: "2"
 services:
+  tests:
+    build: .
+    image: keboola/thoughtspot-writer
+    working_dir: /code
+    tty: true
+    stdin_open: true
+    command: "./vendor/bin/phpunit"
+    environment:
+      - DB_USER
+      - DB_PASSWORD
+      - DB_HOST
+      - DB_PORT
+      - DB_DATABASE
+      - SSH_USER
+      - SSH_PASSWORD
+
   app:
     build: .
     image: keboola/thoughtspot-writer

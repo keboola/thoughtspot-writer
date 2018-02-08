@@ -3,7 +3,7 @@
 use Keboola\DbWriter\Exception\ApplicationException;
 use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Logger;
-use Keboola\Thoughtspot\Application;
+use Keboola\ThoughtSpot\Application;
 use Keboola\ThoughtSpot\Configuration\ConfigDefinition;
 use Keboola\ThoughtSpot\Configuration\ConfigLoader;
 
