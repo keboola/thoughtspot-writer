@@ -4,9 +4,9 @@ namespace Keboola\ThoughtSpot;
 
 use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Logger;
-use Keboola\DbWriter\Test\BaseTest;
+use PHPUnit\Framework\TestCase;
 
-class WriterTest extends BaseTest
+class WriterTest extends TestCase
 {
     private $config;
 
@@ -23,41 +23,44 @@ class WriterTest extends BaseTest
         $this->assertNotNull($conn);
     }
 
-    // @todo Can't test CREATE TABLE, because we cant DROP the table :/
-//    public function testCreate()
-//    {
-//        $writer = $this->getWriter($this->config['parameters']['db']);
-//        /** @var Connection $conn */
-//        $conn = $writer->getConnection();
-//
-//        $writer->create([
-//            'tableId' => 'country',
-//            'dbName' => 'country',
-//            'export' => true,
-//            'incremental' => true,
-//            'primaryKey' => ['id'],
-//            'items' => [
-//                [
-//                    'name' => 'id',
-//                    'dbName' => 'id',
-//                    'type' => 'int',
-//                    'size' => null,
-//                    'nullable' => null,
-//                    'default' => null
-//                ],
-//                [
-//                    'name' => 'name',
-//                    'dbName' => 'name',
-//                    'type' => 'varchar',
-//                    'size' => 255,
-//                    'nullable' => null,
-//                    'default' => null
-//                ]
-//            ]
-//        ]);
-//
-//        $res = $conn->fetchAll("SELECT * FROM country");
-//    }
+    public function testCreate()
+    {
+        $writer = $this->getWriter($this->config['parameters']['db']);
+        $writer->drop('country');
+
+        /** @var Connection $conn */
+        $conn = $writer->getConnection();
+
+        $writer->create([
+            'tableId' => 'country',
+            'dbName' => 'country',
+            'export' => true,
+            'incremental' => true,
+            'primaryKey' => ['id'],
+            'items' => [
+                [
+                    'name' => 'id',
+                    'dbName' => 'id',
+                    'type' => 'int',
+                    'size' => null,
+                    'nullable' => null,
+                    'default' => null
+                ],
+                [
+                    'name' => 'name',
+                    'dbName' => 'name',
+                    'type' => 'varchar',
+                    'size' => 255,
+                    'nullable' => null,
+                    'default' => null
+                ]
+            ]
+        ]);
+
+        $exists = $writer->tableExists('country');
+
+        $this->assertTrue($exists);
+    }
 
     public function testWrite()
     {
@@ -90,7 +93,7 @@ class WriterTest extends BaseTest
         $config['parameters']['db']['host'] = getenv('DB_HOST');
         $config['parameters']['db']['port'] = getenv('DB_PORT');
         $config['parameters']['db']['database'] = getenv('DB_DATABASE');
-        $config['parameters']['db']['ssh']['host'] = getenv('SSH_HOST');
+        $config['parameters']['db']['ssh']['remoteHost'] = getenv('SSH_HOST');
         $config['parameters']['db']['ssh']['user'] = getenv('SSH_USER');
         $config['parameters']['db']['ssh']['password'] = getenv('SSH_PASSWORD');
 

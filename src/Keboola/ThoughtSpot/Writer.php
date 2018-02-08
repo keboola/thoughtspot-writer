@@ -3,18 +3,51 @@
 namespace Keboola\ThoughtSpot;
 
 use Keboola\Csv\CsvFile;
+use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Writer as BaseWriter;
 use Keboola\DbWriter\WriterInterface;
 use Symfony\Component\Process\Process;
 
 class Writer extends BaseWriter implements WriterInterface
 {
+    private static $allowedTypes = [
+        'int', 'bigint',
+        'double', 'float',
+        'bool',
+        'varchar',
+        'date', 'time', 'datetime', 'timestamp',
+    ];
+
+    private $defaultSchema = 'falcon_default_schema';
+
     /** @var Connection */
     protected $db;
 
     public function createConnection($dbParams)
     {
         return new Connection($dbParams);
+    }
+
+    private function runSshCmd($cmd)
+    {
+        $process = new Process(sprintf(
+            "sshpass -p%s ssh -oStrictHostKeyChecking=no %s@%s '%s'",
+            $this->dbParams['ssh']['password'],
+            $this->dbParams['ssh']['user'],
+            $this->dbParams['ssh']['remoteHost'],
+            $cmd
+        ));
+
+        $process->mustRun();
+    }
+
+    private function getTableNameWithSchema($tableName) {
+        $schema = empty($this->dbParams['schema']) ? $this->defaultSchema : $this->dbParams['schema'];
+        return $schema . '.' . $tableName;
+    }
+
+    private function getFullTableName($tableName) {
+        return $this->dbParams['database'] . '.' . $this->getTableNameWithSchema($tableName);
     }
 
     public function write(CsvFile $csv, array $table)
@@ -27,7 +60,7 @@ class Writer extends BaseWriter implements WriterInterface
             $this->dbParams['ssh']['password'],
             $csv->getFileInfo()->getPathname(),
             $this->dbParams['ssh']['user'],
-            $this->dbParams['ssh']['host'],
+            $this->dbParams['ssh']['remoteHost'],
             $dstFile
         ));
         $process->setTimeout(3600);
@@ -44,20 +77,12 @@ class Writer extends BaseWriter implements WriterInterface
             $tsloadCmd .= ' --empty_target';
         }
 
-        $process = new Process(sprintf(
-            "sshpass -p%s ssh -oStrictHostKeyChecking=no %s@%s '%s'",
-            $this->dbParams['ssh']['password'],
-            $this->dbParams['ssh']['user'],
-            $this->dbParams['ssh']['host'],
-            $tsloadCmd
-        ));
-
-        $process->mustRun();
+        $this->runSshCmd($tsloadCmd);
     }
 
     public function drop($tableName)
     {
-        // TODO: Implement drop() method.
+        $this->runSshCmd(sprintf('echo "DROP TABLE %s;" | tql', $this->getFullTableName($tableName)));
     }
 
     public function create(array $table)
@@ -71,6 +96,9 @@ class Writer extends BaseWriter implements WriterInterface
             return (strtolower($item['type']) !== 'ignore');
         });
         foreach ($columns as $col) {
+            if (!in_array(strtolower($col['type']), self::$allowedTypes)) {
+                throw new UserException(sprintf('Type %s not allowed', $col['type']));
+            }
             $type = strtoupper($col['type']);
             if (!empty($col['size'])) {
                 $type .= "({$col['size']})";
@@ -95,7 +123,12 @@ class Writer extends BaseWriter implements WriterInterface
 
     public function tableExists($tableName)
     {
-        // TODO: Implement tableExists() method.
+        try {
+            $this->db->fetchAll(sprintf("SELECT 1 FROM %s", $this->getTableNameWithSchema($tableName)));
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     public function generateTmpName($tableName)
@@ -121,5 +154,10 @@ class Writer extends BaseWriter implements WriterInterface
     public function validateTable($tableConfig)
     {
         // TODO: Implement validateTable() method.
+    }
+
+    public function testConnection()
+    {
+        return $this->getConnection() !== null;
     }
 }

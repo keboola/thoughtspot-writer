@@ -4,6 +4,7 @@ use Keboola\DbWriter\Exception\ApplicationException;
 use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Logger;
 use Keboola\Thoughtspot\Application;
+use Keboola\ThoughtSpot\Configuration\ConfigDefinition;
 use Keboola\ThoughtSpot\Configuration\ConfigLoader;
 
 define('APP_NAME', 'wr-thoughtspot');
@@ -23,7 +24,7 @@ try {
     $config = ConfigLoader::load($arguments['data'] . '/config.json');
     $action = $config['action'];
 
-    $app = new Application($config, $logger);
+    $app = new Application($config, $logger, new ConfigDefinition());
 
     echo json_encode($app->run());
 } catch (UserException $e) {

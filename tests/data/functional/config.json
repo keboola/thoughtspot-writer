@@ -1,0 +1,128 @@
+{
+  "parameters": {
+    "db": {
+      "host": null,
+      "port": 12345,
+      "database": "TEST",
+      "schema": null,
+      "user": null,
+      "password": null,
+      "ssh": {
+        "user": null,
+        "password": null,
+        "remoteHost": null
+      }
+    },
+    "tables": [
+      {
+        "tableId": "simple",
+        "dbName": "simple",
+        "export": true,
+        "incremental": true,
+        "primaryKey": [
+          "id"
+        ],
+        "items": [
+          {
+            "name": "id",
+            "dbName": "id",
+            "type": "int",
+            "size": null
+          },
+          {
+            "name": "name",
+            "dbName": "name",
+            "type": "varchar",
+            "size": 255
+          },
+          {
+            "name": "glasses",
+            "dbName": "glasses",
+            "type": "varchar",
+            "size": 255
+          }
+        ]
+      },
+      {
+        "tableId": "special",
+        "dbName": "special",
+        "export": true,
+        "items": [
+          {
+            "name": "col1",
+            "dbName": "col1",
+            "type": "varchar",
+            "size": 255
+          },
+          {
+            "name": "col2",
+            "dbName": "col2",
+            "type": "varchar",
+            "size": 255
+          }
+        ]
+      },
+      {
+        "tableId": "simple_increment",
+        "dbName": "simple",
+        "export": true,
+        "incremental": true,
+        "primaryKey": [
+          "id"
+        ],
+        "items": [
+          {
+            "name": "id",
+            "dbName": "id",
+            "type": "int",
+            "size": null
+          },
+          {
+            "name": "name",
+            "dbName": "name",
+            "type": "varchar",
+            "size": 255
+          },
+          {
+            "name": "glasses",
+            "dbName": "glasses",
+            "type": "varchar",
+            "size": 255
+          }
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "input": {
+      "tables": [
+        {
+          "source": "simple",
+          "destination": "simple.csv",
+          "columns": [
+            "id",
+            "name",
+            "glasses"
+          ]
+        },
+        {
+          "source": "special",
+          "destination": "special.csv",
+          "columns": [
+            "col1",
+            "col2"
+          ]
+        },
+        {
+          "source": "simple_increment",
+          "destination": "empty.csv",
+          "columns": [
+            "id",
+            "name",
+            "glasses"
+          ]
+        }
+      ]
+    }
+  }
+}

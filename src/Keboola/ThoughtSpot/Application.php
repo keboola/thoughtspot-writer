@@ -2,6 +2,7 @@
 
 namespace Keboola\ThoughtSpot;
 
+use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Configuration\ConfigDefinition;
 use Keboola\DbWriter\Configuration\Validator;
 use Keboola\DbWriter\Exception\ApplicationException;
@@ -56,21 +57,20 @@ class Application
         });
 
         foreach ($tables as $tableConfig) {
-            $manifest = $this->getManifest($tableConfig['tableId']);
-            $this->checkColumns($tableConfig);
-
             if (empty($tableConfig['items'])) {
                 continue;
             }
 
+            $csv = $this->getInputCsv($tableConfig['tableId']);
+
             try {
                 if ($tableConfig['incremental']) {
-                    $this->loadIncremental($tableConfig, $manifest);
+                    $this->loadIncremental($csv, $tableConfig);
                     $uploaded[] = $tableConfig['tableId'];
                     continue;
                 }
 
-                $this->loadFull($tableConfig, $manifest);
+                $this->loadFull($csv, $tableConfig);
                 $uploaded[] = $tableConfig['tableId'];
             } catch (\PDOException $e) {
                 throw new UserException($e->getMessage(), 0, $e, ["trace" => $e->getTraceAsString()]);
@@ -87,18 +87,10 @@ class Application
         ];
     }
 
-    public function loadIncremental($tableConfig, $manifest)
+    public function loadIncremental(CsvFile $csv, $tableConfig)
     {
-        /** @var Redshift $writer */
+        /** @var Writer $writer */
         $writer = $this->container['writer'];
-
-        // write to staging table
-        $stageTable = $tableConfig;
-        $stageTable['dbName'] = $writer->generateTmpName($tableConfig['dbName']);
-
-        $writer->drop($stageTable['dbName']);
-        $writer->create($stageTable);
-        $writer->writeFromS3($manifest['s3'], $stageTable);
 
         // create destination table if not exists
         if (!$writer->tableExists($tableConfig['dbName'])) {
@@ -106,66 +98,30 @@ class Application
         }
 
         // upsert from staging to destination table
-        $writer->upsert($stageTable, $tableConfig['dbName']);
+        $writer->write($csv, $tableConfig);
     }
 
-    public function loadFull($tableConfig, $manifest)
+    public function loadFull(CsvFile $csv, $tableConfig)
     {
-        /** @var Redshift $writer */
+        /** @var Writer $writer */
         $writer = $this->container['writer'];
 
         $writer->drop($tableConfig['dbName']);
         $writer->create($tableConfig);
-        $writer->writeFromS3($manifest['s3'], $tableConfig);
+        $writer->write($csv, $tableConfig);
     }
 
-    private function getManifest($tableId)
+    protected function getInputCsv($tableId)
     {
-        return json_decode(file_get_contents(
-            $this->container['parameters']['data_dir'] . "/in/tables/" . $tableId . ".csv.manifest"
-        ), true);
-    }
-
-    private function getInputMapping($tableId)
-    {
-        foreach ($this->container['inputMapping'] as $inputTable) {
-            if ($tableId == $inputTable['source']) {
-                return $inputTable;
-            }
-        }
-
-        throw new UserException(sprintf(
-            'Table "%s" is missing from input mapping. Reloading the page and re-saving configuration may fix the problem.',
-            $tableId
-        ));
-    }
-
-    /**
-     * Check if input mapping is aligned with table config
-     *
-     * @param $tableConfig
-     * @throws UserException
-     */
-    private function checkColumns($tableConfig)
-    {
-        $inputMapping = $this->getInputMapping($tableConfig['tableId']);
-        $mappingColumns = $inputMapping['columns'];
-        $tableColumns = array_map(function ($item) {
-            return $item['name'];
-        }, $tableConfig['items']);
-
-        if ($mappingColumns !== $tableColumns) {
-            throw new UserException(sprintf(
-                'Columns in configuration of table "%s" does not match with input mapping. Edit and re-save the configuration to fix the problem.',
-                $inputMapping['source']
-            ));
-        }
+        return new CsvFile($this->container['parameters']['data_dir'] . "/in/tables/" . $tableId . ".csv");
     }
 
     public function testConnectionAction()
     {
         try {
-            $this->container['writer']->testConnection();
+            /** @var Writer $writer */
+            $writer = $this->container['writer'];
+            $writer->testConnection();
         } catch (\Exception $e) {
             throw new UserException(sprintf("Connection failed: '%s'", $e->getMessage()), 0, $e);
         }
