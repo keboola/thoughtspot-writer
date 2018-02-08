@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Deps
 RUN apt-get update
-RUN apt-get install -y wget curl make git bzip2 time libzip-dev zip unzip openssl vim unixodbc-dev
+RUN apt-get install -y wget curl make git bzip2 time libzip-dev zip unzip openssl vim unixodbc-dev sshpass
 
 # Driver
 ADD . /code

@@ -5,6 +5,7 @@ namespace Keboola\ThoughtSpot;
 use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Writer as BaseWriter;
 use Keboola\DbWriter\WriterInterface;
+use Symfony\Component\Process\Process;
 
 class Writer extends BaseWriter implements WriterInterface
 {
@@ -18,20 +19,40 @@ class Writer extends BaseWriter implements WriterInterface
 
     public function write(CsvFile $csv, array $table)
     {
-        // skip header
-        $csv->next();
+        $dstFile = str_replace('.csv', '', $csv->getFileInfo()->getFilename()) . microtime(true) . '.csv';
 
-        while ($row = $csv->current()) {
-            $sql = sprintf(
-                'INSERT INTO %s VALUES (%s)',
-                $table['dbName'],
-                implode(',', array_fill(0, count($row), '?'))
-            );
+        // copy file to server using scp
+        $process = new Process(sprintf(
+            'sshpass -p%s scp -oStrictHostKeyChecking=no %s %s@%s:/tmp/%s',
+            $this->dbParams['ssh']['password'],
+            $csv->getFileInfo()->getPathname(),
+            $this->dbParams['ssh']['user'],
+            $this->dbParams['ssh']['host'],
+            $dstFile
+        ));
+        $process->setTimeout(3600);
+        $process->mustRun();
 
-            $this->db->query($sql, $row);
+        // load file to TS using tsload
+        $tsloadCmd = 'tsload'
+            . sprintf(' --target_database %s', $this->dbParams['database'])
+            . sprintf(' --target_table %s', $table['dbName'])
+            . sprintf(' --source_file /tmp/%s', $dstFile)
+            . ' --v 1 --field_separator "," --has_header_row';
 
-            $csv->next();
+        if ($table['incremental'] == false) {
+            $tsloadCmd .= ' --empty_target';
         }
+
+        $process = new Process(sprintf(
+            "sshpass -p%s ssh -oStrictHostKeyChecking=no %s@%s '%s'",
+            $this->dbParams['ssh']['password'],
+            $this->dbParams['ssh']['user'],
+            $this->dbParams['ssh']['host'],
+            $tsloadCmd
+        ));
+
+        $process->mustRun();
     }
 
     public function drop($tableName)

@@ -65,13 +65,20 @@ class WriterTest extends BaseTest
         /** @var Connection $conn */
         $conn = $writer->getConnection();
 
-        $csvFile = new CsvFile(ROOT_PATH . '/tests/data/countries.csv');
+        $srcFilename = ROOT_PATH . '/tests/data/countries.csv';
+        $csvFile = new CsvFile($srcFilename);
 
-        $writer->write($csvFile, ['dbName' => 'country']);
+        $writer->write($csvFile, [
+            'tableId' => 'country',
+            'dbName' => 'country',
+            'export' => true,
+            'incremental' => false,
+            'primaryKey' => ['id'],
+        ]);
 
         $res = $conn->fetchAll("SELECT id, name FROM country");
 
-        var_dump($res);
+        $this->assertEquals('slovakia', $res[198]['name']);
     }
 
     private function initConfig()
@@ -83,6 +90,9 @@ class WriterTest extends BaseTest
         $config['parameters']['db']['host'] = getenv('DB_HOST');
         $config['parameters']['db']['port'] = getenv('DB_PORT');
         $config['parameters']['db']['database'] = getenv('DB_DATABASE');
+        $config['parameters']['db']['ssh']['host'] = getenv('SSH_HOST');
+        $config['parameters']['db']['ssh']['user'] = getenv('SSH_USER');
+        $config['parameters']['db']['ssh']['password'] = getenv('SSH_PASSWORD');
 
         return $config;
     }
