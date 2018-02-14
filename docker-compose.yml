@@ -2,7 +2,7 @@ version: "2"
 services:
   tests:
     build: .
-    image: keboola/thoughtspot-writer
+    image: keboola/wr-thoughtspot
     volumes:
       - .:/code
     working_dir: /code
