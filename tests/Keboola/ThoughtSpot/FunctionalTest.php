@@ -6,12 +6,10 @@
  * Time: 17:20
  */
 
-namespace Keboola\DbWriter\Redshift\Tests;
+namespace Keboola\ThoughtSpot;
 
 use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Logger;
-use Keboola\ThoughtSpot\Connection;
-use Keboola\ThoughtSpot\Writer;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;

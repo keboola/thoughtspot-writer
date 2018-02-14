@@ -6,7 +6,10 @@ services:
     volumes:
       - .:/code
     working_dir: /code
-    command: "./vendor/bin/phpunit"
+    command: >
+      sh -c "composer install
+      && ./vendor/bin/phpstan analyse src tests
+      && ./vendor/bin/phpunit"
     environment:
       - DB_USER
       - DB_PASSWORD
