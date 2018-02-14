@@ -1,2 +1,2 @@
-# thoughtspot-writer
-Writes data to Thoughtspot (https://thoughtspot.com) using ODBC driver
+# ThoughtSpot Writer
+Writes data to Thoughtspot (https://thoughtspot.com)
