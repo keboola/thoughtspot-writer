@@ -11,7 +11,7 @@ class Connection
     public function __construct(array $options)
     {
         // check params
-        foreach (['host', 'database', 'user', 'password'] as $param) {
+        foreach (['host', 'database', 'user', '#password'] as $param) {
             if (!isset($options[$param])) {
                 throw new UserException(sprintf("Parameter %s is missing.", $param));
             }
@@ -22,7 +22,7 @@ class Connection
         $schema = empty($options['schema']) ? 'falcon_default_schema' : $options['schema'];
 
         $dsn = "Driver={ThoughtSpot(x64)};Database=$database;SERVERLIST=$serverList;SCHEMA=$schema";
-        $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
+        $this->connection = odbc_connect($dsn, $options['user'], $options['#password']);
     }
 
     public function quote($value)

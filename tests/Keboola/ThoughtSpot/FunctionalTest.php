@@ -97,12 +97,11 @@ class FunctionalTest extends TestCase
         $config['parameters']['data_dir'] = $this->tmpDataDir;
         $config['parameters']['db']['user'] = getenv('DB_USER');
         $config['parameters']['db']['#password'] = getenv('DB_PASSWORD');
-        $config['parameters']['db']['password'] = getenv('DB_PASSWORD');
         $config['parameters']['db']['host'] = getenv('DB_HOST');
         $config['parameters']['db']['port'] = getenv('DB_PORT');
         $config['parameters']['db']['database'] = getenv('DB_DATABASE');
         $config['parameters']['db']['ssh']['user'] = getenv('SSH_USER');
-        $config['parameters']['db']['ssh']['password'] = getenv('SSH_PASSWORD');
+        $config['parameters']['db']['ssh']['#password'] = getenv('SSH_PASSWORD');
 
         if ($callback !== null) {
             $config = $callback($config);

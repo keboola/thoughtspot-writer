@@ -6,10 +6,10 @@
       "database": "TEST",
       "schema": null,
       "user": null,
-      "password": null,
+      "#password": null,
       "ssh": {
         "user": null,
-        "password": null,
+        "#password": null,
         "remoteHost": null
       }
     },

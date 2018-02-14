@@ -37,7 +37,6 @@ class ConfigDefinition implements ConfigurationInterface
                         ->scalarNode('user')
                             ->isRequired()
                         ->end()
-                        ->scalarNode('password')->end()
                         ->scalarNode('#password')->end()
                         ->append($this->addSshNode())
                     ->end()
@@ -119,7 +118,7 @@ class ConfigDefinition implements ConfigurationInterface
                     ->defaultValue("33006")
                 ->end()
                 ->scalarNode('user')->end()
-                ->scalarNode('password')->end()
+                ->scalarNode('#password')->end()
             ->end()
         ;
 

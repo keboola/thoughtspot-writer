@@ -32,7 +32,7 @@ class Writer extends BaseWriter implements WriterInterface
     {
         $process = new Process(sprintf(
             "sshpass -p%s ssh -oStrictHostKeyChecking=no %s@%s '%s'",
-            $this->dbParams['ssh']['password'],
+            $this->dbParams['ssh']['#password'],
             $this->dbParams['ssh']['user'],
             $this->dbParams['host'],
             $cmd
@@ -61,7 +61,7 @@ class Writer extends BaseWriter implements WriterInterface
         // copy file to server using scp
         $process = new Process(sprintf(
             'sshpass -p%s scp -oStrictHostKeyChecking=no %s %s@%s:/tmp/%s',
-            $this->dbParams['ssh']['password'],
+            $this->dbParams['ssh']['#password'],
             $csv->getFileInfo()->getPathname(),
             $this->dbParams['ssh']['user'],
             $this->dbParams['host'],
