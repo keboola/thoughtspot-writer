@@ -8,7 +8,9 @@
 
 namespace Keboola\DbWriter\Redshift\Tests;
 
+use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Logger;
+use Keboola\ThoughtSpot\Connection;
 use Keboola\ThoughtSpot\Writer;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
@@ -18,7 +20,7 @@ class FunctionalTest extends TestCase
 {
     protected $dataDir = ROOT_PATH . 'tests/data/functional';
 
-    protected $tmpDataDir = '/tmp/wr-db-redshift/data';
+    protected $tmpDataDir = '/tmp/wr-thoughtspot/data';
 
     public function setUp()
     {
@@ -31,9 +33,45 @@ class FunctionalTest extends TestCase
 
     public function testRun()
     {
-        $this->prepareDataFiles($this->initConfig());
+        $config = $this->initConfig();
+        $this->prepareDataFiles($config);
         $process = $this->runProcess();
-        $this->assertEquals(0, $process->getExitCode(), $process->getOutput());
+
+        static::assertEquals(0, $process->getExitCode(), $process->getOutput());
+
+        $writer = $this->getWriter($config['parameters']['db']);
+        /** @var Connection $conn */
+        $conn = $writer->getConnection();
+        $res = $conn->fetchAll("SELECT id, name, glasses FROM simple");
+
+        $resFilename = tempnam($this->tmpDataDir, 'simple-');
+        $resCsv = new CsvFile($resFilename);
+        $resCsv->writeRow(['id', 'name', 'glasses']);
+        foreach ($res as $row) {
+            $resCsv->writeRow($row);
+        }
+
+        $expectedFilename = tempnam($this->tmpDataDir, 'expected-simple');
+        $srcFile = $this->dataDir . '/in/tables/simple.csv';
+        $srcFile2 = $this->dataDir . '/in/tables/simple_increment.csv';
+
+        $csvExpected = new CsvFile($expectedFilename);
+        $csvSimple = new CsvFile($srcFile);
+        $csvSimple->next();
+        while ($csvSimple->current()) {
+            $csvExpected->writeRow($csvSimple->current());
+            $csvSimple->next();
+        }
+
+        $csvIncrement = new CsvFile($srcFile2);
+        $csvIncrement->next();
+        $csvIncrement->next();
+        while ($csvIncrement->current()) {
+            $csvExpected->writeRow($csvIncrement->current());
+            $csvIncrement->next();
+        }
+
+        static::assertFileEquals($expectedFilename, $resFilename);
     }
 
     public function testTestConnection()
@@ -47,9 +85,9 @@ class FunctionalTest extends TestCase
         $process = $this->runProcess();
         $data = json_decode($process->getOutput(), true);
 
-        $this->assertEquals(0, $process->getExitCode(), $process->getOutput());
-        $this->assertArrayHasKey('status', $data);
-        $this->assertEquals('success', $data['status']);
+        static::assertEquals(0, $process->getExitCode(), $process->getOutput());
+        static::assertArrayHasKey('status', $data);
+        static::assertEquals('success', $data['status']);
     }
 
     private function initConfig(callable $callback = null)

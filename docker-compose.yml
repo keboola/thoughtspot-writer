@@ -3,9 +3,9 @@ services:
   tests:
     build: .
     image: keboola/thoughtspot-writer
+    volumes:
+      - .:/code
     working_dir: /code
-    tty: true
-    stdin_open: true
     command: "./vendor/bin/phpunit"
     environment:
       - DB_USER
@@ -15,13 +15,3 @@ services:
       - DB_DATABASE
       - SSH_USER
       - SSH_PASSWORD
-
-  app:
-    build: .
-    image: keboola/thoughtspot-writer
-    volumes:
-      - .:/code
-    working_dir: /code
-    tty: true
-    stdin_open: true
-    command: "./vendor/bin/phpunit"

@@ -38,7 +38,11 @@ class Writer extends BaseWriter implements WriterInterface
             $cmd
         ));
 
-        $process->mustRun();
+        try {
+            $process->mustRun();
+        } catch (\Exception $e) {
+            throw new UserException($process->getErrorOutput());
+        }
     }
 
     private function getTableNameWithSchema($tableName) {
