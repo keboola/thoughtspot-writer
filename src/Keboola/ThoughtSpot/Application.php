@@ -173,7 +173,7 @@ class Application
     private function getInputMapping($tableId)
     {
         foreach ($this->container['inputMapping'] as $inputTable) {
-            if ($tableId == $inputTable['source']) {
+            if ($tableId == str_replace('.csv', '', $inputTable['destination'])) {
                 return $inputTable;
             }
         }
