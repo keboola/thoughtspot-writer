@@ -59,7 +59,7 @@ class WriterTest extends TestCase
 
         $exists = $writer->tableExists('country');
 
-        $this->assertTrue($exists);
+        static::assertTrue($exists);
     }
 
     public function testWrite()
@@ -81,7 +81,29 @@ class WriterTest extends TestCase
 
         $res = $conn->fetchAll("SELECT id, name FROM country");
 
-        $this->assertEquals('slovakia', $res[198]['name']);
+        static::assertEquals('slovakia', $res[198]['name']);
+    }
+
+    public function testWriteNullValues()
+    {
+        $writer = $this->getWriter($this->config['parameters']['db']);
+        /** @var Connection $conn */
+        $conn = $writer->getConnection();
+
+        $srcFilename = ROOT_PATH . '/tests/data/countries_null.csv';
+        $csvFile = new CsvFile($srcFilename);
+
+        $writer->write($csvFile, [
+            'tableId' => 'country',
+            'dbName' => 'country',
+            'export' => true,
+            'incremental' => false,
+            'primaryKey' => ['id'],
+        ]);
+
+        $res = $conn->fetchAll("SELECT id, name FROM country");
+
+        static::assertEmpty($res[201]['name']);
     }
 
     private function initConfig()

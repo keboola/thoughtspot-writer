@@ -56,6 +56,13 @@ class Writer extends BaseWriter implements WriterInterface
 
     public function write(CsvFile $csv, array $table)
     {
+        $this->logger->info(
+            sprintf('Importing CSV with columns "%s"', implode(',', $csv->getHeader()))
+        );
+        $this->logger->info(
+            sprintf('CSV manifest "%s"', file_get_contents($csv->getFileInfo()->getFilename() . '.manifest'))
+        );
+
         $dstFile = str_replace('.csv', '', $csv->getFileInfo()->getFilename()) . microtime(true) . '.csv';
 
         // copy file to server using scp
