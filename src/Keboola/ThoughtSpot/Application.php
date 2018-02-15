@@ -61,6 +61,8 @@ class Application
                 continue;
             }
 
+            $this->checkColumns($tableConfig);
+
             $csv = $this->getInputCsv($tableConfig['tableId']);
 
             try {
@@ -144,5 +146,41 @@ class Application
             'status' => 'success',
             'tables' => $tablesInfo
         ];
+    }
+
+    /**
+     * Check if input mapping is aligned with table config
+     *
+     * @param $tableConfig
+     * @throws UserException
+     */
+    private function checkColumns($tableConfig)
+    {
+        $inputMapping = $this->getInputMapping($tableConfig['tableId']);
+        $mappingColumns = $inputMapping['columns'];
+        $tableColumns = array_map(function ($item) {
+            return $item['name'];
+        }, $tableConfig['items']);
+
+        if ($mappingColumns !== $tableColumns) {
+            throw new UserException(sprintf(
+                'Columns in configuration of table "%s" does not match with Input Mapping. Make sure the columns in the configuration are the same as in the Input Mapping and the order is the same.',
+                $inputMapping['source']
+            ));
+        }
+    }
+
+    private function getInputMapping($tableId)
+    {
+        foreach ($this->container['inputMapping'] as $inputTable) {
+            if ($tableId == $inputTable['source']) {
+                return $inputTable;
+            }
+        }
+
+        throw new UserException(sprintf(
+            'Table "%s" is missing from input mapping. Reloading the page and re-saving configuration may fix the problem.',
+            $tableId
+        ));
     }
 }
