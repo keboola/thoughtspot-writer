@@ -11,7 +11,7 @@ class Connection
     public function __construct(array $options)
     {
         // check params
-        foreach (['host', 'database', 'user', '#password'] as $param) {
+        foreach (['host', 'database', 'user', '#password', 'sshUser', '#sshPassword'] as $param) {
             if (!isset($options[$param])) {
                 throw new UserException(sprintf("Parameter %s is missing.", $param));
             }

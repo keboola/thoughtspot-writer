@@ -38,7 +38,10 @@ class ConfigDefinition implements ConfigurationInterface
                             ->isRequired()
                         ->end()
                         ->scalarNode('#password')->end()
-                        ->append($this->addSshNode())
+                        ->scalarNode('sshUser')
+                            ->isRequired()
+                        ->end()
+                        ->scalarNode('#sshPassword')->end()
                     ->end()
                 ->end()
                 ->arrayNode('tables')
@@ -89,39 +92,5 @@ class ConfigDefinition implements ConfigurationInterface
         ;
 
         return $treeBuilder;
-    }
-
-    public function addSshNode()
-    {
-        $builder = new TreeBuilder();
-        $node = $builder->root('ssh');
-
-        $node
-            ->children()
-                ->booleanNode('enabled')->end()
-                ->arrayNode('keys')
-                    ->children()
-                        ->scalarNode('private')->end()
-                        ->scalarNode('#private')->end()
-                        ->scalarNode('public')->end()
-                    ->end()
-                ->end()
-                ->scalarNode('sshHost')->end()
-                ->scalarNode('sshPort')
-                    ->defaultValue("22")
-                ->end()
-                ->scalarNode('remoteHost')
-                ->end()
-                ->scalarNode('remotePort')
-                ->end()
-                ->scalarNode('localPort')
-                    ->defaultValue("33006")
-                ->end()
-                ->scalarNode('user')->end()
-                ->scalarNode('#password')->end()
-            ->end()
-        ;
-
-        return $node;
     }
 }

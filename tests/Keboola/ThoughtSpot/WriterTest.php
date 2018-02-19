@@ -114,8 +114,8 @@ class WriterTest extends TestCase
         $config['parameters']['db']['host'] = getenv('DB_HOST');
         $config['parameters']['db']['port'] = getenv('DB_PORT');
         $config['parameters']['db']['database'] = getenv('DB_DATABASE');
-        $config['parameters']['db']['ssh']['user'] = getenv('SSH_USER');
-        $config['parameters']['db']['ssh']['#password'] = getenv('SSH_PASSWORD');
+        $config['parameters']['db']['sshUser'] = getenv('SSH_USER');
+        $config['parameters']['db']['#sshPassword'] = getenv('SSH_PASSWORD');
 
         return $config;
     }

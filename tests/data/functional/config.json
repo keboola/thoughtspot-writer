@@ -7,11 +7,8 @@
       "schema": null,
       "user": null,
       "#password": null,
-      "ssh": {
-        "user": null,
-        "#password": null,
-        "remoteHost": null
-      }
+      "sshUser": null,
+      "#sshPassword": null
     },
     "tables": [
       {
