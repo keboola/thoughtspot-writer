@@ -27,7 +27,7 @@ class Connection
 
     public function quote($value)
     {
-        return sprintf('%s', $value);
+        return sprintf('"%s"', $value);
     }
 
     public function query($sql, array $bind = [])
