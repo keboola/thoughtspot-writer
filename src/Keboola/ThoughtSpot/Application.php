@@ -27,7 +27,12 @@ class Application
         $this->container = new Container();
         $this->container['action'] = isset($config['action']) ? $config['action'] : 'run';
         $this->container['parameters'] = $parameters;
-        $this->container['inputMapping'] = $config['storage']['input']['tables'];
+        $this->container['inputMapping'] = function ($container) use ($config) {
+            if ($container['action'] === 'run') {
+                return $config['storage']['input']['tables'];
+            }
+            return [];
+        };
         $this->container['logger'] = function ($container) use ($logger) {
             if ($container['action'] !== 'run') {
                 $logger->setHandlers(array(new NullHandler(Logger::INFO)));

@@ -76,6 +76,7 @@ class FunctionalTest extends TestCase
     {
         $config = $this->initConfig(function ($config) {
             $config['action'] = 'testConnection';
+            unset($config['storage']);
             return $config;
         });
         $this->prepareDataFiles($config);
