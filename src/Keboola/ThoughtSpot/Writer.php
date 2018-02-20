@@ -43,6 +43,8 @@ class Writer extends BaseWriter implements WriterInterface
         } catch (\Exception $e) {
             throw new UserException($process->getErrorOutput());
         }
+
+        return $process;
     }
 
     private function getTableNameWithSchema($tableName) {
@@ -162,6 +164,9 @@ class Writer extends BaseWriter implements WriterInterface
 
     public function testConnection()
     {
-        return $this->getConnection() !== null;
+        if ($this->getConnection() === null) {
+            throw new UserException("DB connection unsuccessful");
+        }
+        $this->runSshCmd('whoami');
     }
 }
