@@ -82,6 +82,7 @@ class FunctionalTest extends TestCase
         $this->prepareDataFiles($config);
 
         $process = $this->runProcess();
+        var_dump($process->getOutput());
         $data = json_decode($process->getOutput(), true);
 
         static::assertEquals(0, $process->getExitCode(), $process->getOutput());

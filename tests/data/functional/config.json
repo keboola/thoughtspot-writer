@@ -3,7 +3,7 @@
     "db": {
       "host": null,
       "port": 12345,
-      "database": "TEST",
+      "database": "KEBOOLA",
       "schema": null,
       "user": null,
       "#password": null,

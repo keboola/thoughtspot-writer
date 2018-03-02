@@ -8,6 +8,9 @@ use Keboola\DbWriter\Configuration\Validator;
 use Keboola\DbWriter\Exception\ApplicationException;
 use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Logger;
+use Keboola\ThoughtSpot\Command\CreateTable;
+use Keboola\ThoughtSpot\Command\DropTable;
+use Keboola\ThoughtSpot\Command\WriteData;
 use Monolog\Handler\NullHandler;
 use Pimple\Container;
 
@@ -98,14 +101,22 @@ class Application
     {
         /** @var Writer $writer */
         $writer = $this->container['writer'];
+        $dbParams =$this->container['parameters']['db'];
 
         // create destination table if not exists
         if (!$writer->tableExists($tableConfig['dbName'])) {
-            $writer->create($tableConfig);
+            var_dump("table not exists");
+            $writer->execute([
+                new CreateTable($dbParams, $tableConfig)
+            ]);
         }
 
         // upsert from staging to destination table
-        $writer->write($csv, $tableConfig);
+        $dstFile = $writer->uploadFile($csv);
+
+        return $writer->execute([
+            new WriteData($dbParams, $dstFile, $tableConfig)
+        ]);
     }
 
     public function loadFull(CsvFile $csv, $tableConfig)
@@ -113,9 +124,14 @@ class Application
         /** @var Writer $writer */
         $writer = $this->container['writer'];
 
-        $writer->drop($tableConfig['dbName']);
-        $writer->create($tableConfig);
-        $writer->write($csv, $tableConfig);
+        $dbParams =$this->container['parameters']['db'];
+        $dstFile = $writer->uploadFile($csv);
+
+        return $writer->execute([
+            new DropTable($dbParams, $tableConfig['dbName']),
+            new CreateTable($dbParams, $tableConfig),
+            new WriteData($dbParams, $dstFile, $tableConfig)
+        ]);
     }
 
     protected function getInputCsv($tableId)

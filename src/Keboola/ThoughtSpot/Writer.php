@@ -6,19 +6,12 @@ use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Writer as BaseWriter;
 use Keboola\DbWriter\WriterInterface;
+use Keboola\ThoughtSpot\Command\CommandInterface;
 use Symfony\Component\Process\Process;
 
 class Writer extends BaseWriter implements WriterInterface
 {
-    private static $allowedTypes = [
-        'int', 'bigint',
-        'double', 'float',
-        'bool',
-        'varchar',
-        'date', 'time', 'datetime', 'timestamp',
-    ];
-
-    private $defaultSchema = 'falcon_default_schema';
+    use Utils;
 
     /** @var Connection */
     protected $db;
@@ -47,16 +40,7 @@ class Writer extends BaseWriter implements WriterInterface
         return $process;
     }
 
-    private function getTableNameWithSchema($tableName) {
-        $schema = empty($this->dbParams['schema']) ? $this->defaultSchema : $this->dbParams['schema'];
-        return $schema . '.' . $tableName;
-    }
-
-    private function getFullTableName($tableName) {
-        return $this->dbParams['database'] . '.' . $this->getTableNameWithSchema($tableName);
-    }
-
-    public function write(CsvFile $csv, array $table)
+    public function uploadFile(CsvFile $csv)
     {
         $dstFile = str_replace('.csv', '', $csv->getFileInfo()->getFilename()) . microtime(true) . '.csv';
 
@@ -72,54 +56,20 @@ class Writer extends BaseWriter implements WriterInterface
         $process->setTimeout(3600);
         $process->mustRun();
 
-        // load file to TS using tsload
-        $tsloadCmd = 'tsload'
-            . sprintf(' --target_database %s', $this->dbParams['database'])
-            . sprintf(' --target_table %s', $table['dbName'])
-            . sprintf(' --source_file /tmp/%s', $dstFile)
-            . ' --v 1 --field_separator "," --has_header_row';
-
-        if ($table['incremental'] == false) {
-            $tsloadCmd .= ' --empty_target';
-        }
-
-        $this->runSshCmd($tsloadCmd);
+        return $dstFile;
     }
 
-    public function drop($tableName)
+    public function execute($batch)
     {
-        $this->runSshCmd(sprintf('echo "DROP TABLE %s;" | tql', $this->getFullTableName($tableName)));
+        foreach ($batch as $command) {
+            /** @var CommandInterface $command */
+            $this->runSshCmd($command->__toString());
+        }
     }
 
-    public function create(array $table)
+    public function write(CsvFile $csv, array $table)
     {
-        $sql = sprintf(
-            "CREATE TABLE %s (",
-            $this->db->quote($table['dbName'])
-        );
 
-        $columns = array_filter($table['items'], function ($item) {
-            return (strtolower($item['type']) !== 'ignore');
-        });
-        foreach ($columns as $col) {
-            if (!in_array(strtolower($col['type']), self::$allowedTypes)) {
-                throw new UserException(sprintf('Type %s not allowed', $col['type']));
-            }
-            $type = strtoupper($col['type']);
-            if (!empty($col['size'])) {
-                $type .= "({$col['size']})";
-                if (strtoupper($col['type']) === 'ENUM') {
-                    $type = $col['size'];
-                }
-            }
-
-            $sql .= "{$this->db->quote($col['dbName'])} $type";
-            $sql .= ',';
-        }
-        $sql = substr($sql, 0, -1);
-        $sql .= ")";
-
-        $this->db->query($sql);
     }
 
     public function upsert(array $table, $targetTable)
@@ -130,7 +80,10 @@ class Writer extends BaseWriter implements WriterInterface
     public function tableExists($tableName)
     {
         try {
-            $this->db->fetchAll(sprintf("SELECT 1 FROM %s", $this->getTableNameWithSchema($tableName)));
+            $this->db->fetchAll(sprintf(
+                "SELECT 1 FROM %s",
+                $this->getTableNameWithSchema($this->dbParams, $tableName)
+            ));
             return true;
         } catch (\Exception $e) {
             return false;
@@ -168,5 +121,15 @@ class Writer extends BaseWriter implements WriterInterface
             throw new UserException("DB connection unsuccessful");
         }
         $this->runSshCmd('whoami');
+    }
+
+    public function drop($tableName)
+    {
+        // TODO: Implement drop() method.
+    }
+
+    public function create(array $table)
+    {
+        // TODO: Implement create() method.
     }
 }
