@@ -10,6 +10,7 @@ namespace Keboola\ThoughtSpot;
 
 use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Logger;
+use Keboola\ThoughtSpot\Command\DropTable;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
@@ -33,11 +34,12 @@ class FunctionalTest extends TestCase
     {
         $config = $this->initConfig();
         $this->prepareDataFiles($config);
+        $writer = $this->getWriter($config['parameters']['db']);
+
         $process = $this->runProcess();
 
         static::assertEquals(0, $process->getExitCode(), $process->getOutput());
 
-        $writer = $this->getWriter($config['parameters']['db']);
         /** @var Connection $conn */
         $conn = $writer->getConnection();
         $res = $conn->fetchAll("SELECT id, name, glasses FROM simple");
@@ -49,27 +51,7 @@ class FunctionalTest extends TestCase
             $resCsv->writeRow($row);
         }
 
-        $expectedFilename = tempnam($this->tmpDataDir, 'expected-simple');
-        $srcFile = $this->dataDir . '/in/tables/simple.csv';
-        $srcFile2 = $this->dataDir . '/in/tables/simple_increment.csv';
-
-        $csvExpected = new CsvFile($expectedFilename);
-        $csvSimple = new CsvFile($srcFile);
-        $csvSimple->next();
-        while ($csvSimple->current()) {
-            $csvExpected->writeRow($csvSimple->current());
-            $csvSimple->next();
-        }
-
-        $csvIncrement = new CsvFile($srcFile2);
-        $csvIncrement->next();
-        $csvIncrement->next();
-        while ($csvIncrement->current()) {
-            $csvExpected->writeRow($csvIncrement->current());
-            $csvIncrement->next();
-        }
-
-        static::assertFileEquals($expectedFilename, $resFilename);
+        static::assertFileEquals($this->dataDir . '/simple_expected.csv', $resFilename);
     }
 
     public function testTestConnection()
@@ -82,7 +64,6 @@ class FunctionalTest extends TestCase
         $this->prepareDataFiles($config);
 
         $process = $this->runProcess();
-        var_dump($process->getOutput());
         $data = json_decode($process->getOutput(), true);
 
         static::assertEquals(0, $process->getExitCode(), $process->getOutput());
@@ -122,7 +103,9 @@ class FunctionalTest extends TestCase
         $fs = new Filesystem();
         foreach ($config['parameters']['tables'] as $table) {
             // clean destination DB
-            $writer->drop($table['dbName']);
+            $writer->execute([
+                new DropTable($config['parameters']['db'], $table['dbName'])
+            ]);
 
             $srcPath = $this->dataDir . '/in/tables/' . $table['tableId'] . '.csv';
             $dstPath = $this->tmpDataDir . '/in/tables/' . $table['tableId'] . '.csv';

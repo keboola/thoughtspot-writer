@@ -105,7 +105,6 @@ class Application
 
         // create destination table if not exists
         if (!$writer->tableExists($tableConfig['dbName'])) {
-            var_dump("table not exists");
             $writer->execute([
                 new CreateTable($dbParams, $tableConfig)
             ]);

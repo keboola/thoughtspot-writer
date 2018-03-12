@@ -97,7 +97,7 @@ class Writer extends BaseWriter implements WriterInterface
 
     public function showTables($dbName)
     {
-        // TODO: Implement showTables() method.
+        return $this->db->fetchAll("SHOW TABLES;");
     }
 
     public function getTableInfo($tableName)

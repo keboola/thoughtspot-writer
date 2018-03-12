@@ -16,15 +16,11 @@ class CreateTable extends AbstractCommand
 
     public function __construct($dbParams, $table)
     {
-        $sql = sprintf(
-            "CREATE TABLE %s (",
-            $this->getFullTableName($dbParams, $table['dbName'])
-        );
-
         $columns = array_filter($table['items'], function ($item) {
             return (strtolower($item['type']) !== 'ignore');
         });
 
+        $columnsSql = [];
         foreach ($columns as $col) {
             if (!in_array(strtolower($col['type']), static::$allowedTypes)) {
                 throw new UserException(sprintf('Type %s not allowed', $col['type']));
@@ -37,11 +33,22 @@ class CreateTable extends AbstractCommand
                 }
             }
 
-            $sql .= $this->quote($col['dbName']) . " $type";
-            $sql .= ',';
+            $columnsSql[] = $this->quote($col['dbName']) . " $type";
         }
-        $sql = substr($sql, 0, -1);
-        $sql .= ");";
+
+        $pkSql = '';
+        if (!empty($table['primaryKey'])) {
+            $pkSql = sprintf(
+                ", PRIMARY KEY (%s)",
+                implode(',', $table['primaryKey'])
+            );
+        }
+
+        $sql = sprintf("CREATE TABLE %s (%s %s);",
+            $this->getFullTableName($dbParams, $table['dbName']),
+            implode(',', $columnsSql),
+            $pkSql
+        );
 
         $this->command = $this->getTqlCommand($sql);
     }

@@ -8,8 +8,8 @@ class WriteData extends AbstractCommand
     {
         // load file to TS using tsload
         $tsloadCmd = 'tsload'
-            . sprintf(' --target_database %s', $dbParams['database'])
-            . sprintf(' --target_table %s', $table['dbName'])
+            . sprintf(' --target_database "%s"', $dbParams['database'])
+            . sprintf(' --target_table "%s"', $table['dbName'])
             . sprintf(' --source_file /tmp/%s', $dstFile)
             . ' --v 1 --field_separator "," --has_header_row';
 
