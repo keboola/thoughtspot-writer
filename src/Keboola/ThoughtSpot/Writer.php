@@ -23,6 +23,8 @@ class Writer extends BaseWriter implements WriterInterface
 
     private function runSshCmd($cmd)
     {
+        $this->logger->info(sprintf('Executing command "%s"', $cmd));
+
         $process = new Process(sprintf(
             "sshpass -p%s ssh -oStrictHostKeyChecking=no %s@%s '%s'",
             $this->dbParams['#sshPassword'],
