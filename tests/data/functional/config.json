@@ -3,7 +3,7 @@
     "db": {
       "host": null,
       "port": 12345,
-      "database": "TEST",
+      "database": "KEBOOLA",
       "schema": null,
       "user": null,
       "#password": null,
@@ -19,6 +19,7 @@
         "primaryKey": [
           "id"
         ],
+        "type": "fact",
         "items": [
           {
             "name": "id",
@@ -44,6 +45,7 @@
         "tableId": "special",
         "dbName": "special",
         "export": true,
+        "type": "fact",
         "items": [
           {
             "name": "col1",
@@ -67,6 +69,7 @@
         "primaryKey": [
           "id"
         ],
+        "type": "fact",
         "items": [
           {
             "name": "id",
