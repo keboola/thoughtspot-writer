@@ -44,7 +44,8 @@ class CreateTable extends AbstractCommand
             );
         }
 
-        $sql = sprintf("CREATE TABLE %s (%s %s);",
+        $sql = sprintf("CREATE %s TABLE %s (%s %s);",
+            isset($table['type']) ? $table['type'] : '',
             $this->getFullTableName($dbParams, $table['dbName']),
             implode(',', $columnsSql),
             $pkSql

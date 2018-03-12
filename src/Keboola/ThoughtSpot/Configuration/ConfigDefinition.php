@@ -66,6 +66,12 @@ class ConfigDefinition implements ConfigurationInterface
                                 ->prototype('scalar')
                                 ->end()
                             ->end()
+                            ->enumNode('type')
+                                ->values([
+                                    'fact',
+                                    'dimension'
+                                ])
+                            ->end()
                             ->arrayNode('items')
                                 ->prototype('array')
                                     ->children()
