@@ -12,7 +12,7 @@ class AbstractCommand implements CommandInterface
 
     public function getTqlCommand($tql)
     {
-        return sprintf('echo "%s" | tql', $tql);
+        return sprintf('echo \'%s\' | tql', $tql);
     }
 
     public function __toString()

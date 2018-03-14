@@ -3,6 +3,8 @@ services:
   tests:
     build: .
     image: keboola/wr-thoughtspot
+    volumes:
+      - .:/code
     working_dir: /code
     command: >
       sh -c "composer install
