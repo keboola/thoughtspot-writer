@@ -7,6 +7,7 @@ use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Writer as BaseWriter;
 use Keboola\DbWriter\WriterInterface;
 use Keboola\ThoughtSpot\Command\CommandInterface;
+use Keboola\ThoughtSpot\Command\DropTable;
 use Symfony\Component\Process\Process;
 
 class Writer extends BaseWriter implements WriterInterface
@@ -36,6 +37,16 @@ class Writer extends BaseWriter implements WriterInterface
         try {
             $process->mustRun();
         } catch (\Exception $e) {
+            throw new UserException(
+                'output: ' . $process->getOutput() . PHP_EOL . 'error output: ' . $process->getErrorOutput()
+            );
+        }
+
+        $errorOutput = $process->getErrorOutput();
+        if (!empty($errorOutput)
+            && false === strstr($errorOutput, 'Statement executed successfully')
+            && !($cmd instanceof DropTable)
+        ) {
             throw new UserException($process->getErrorOutput());
         }
 
@@ -65,7 +76,7 @@ class Writer extends BaseWriter implements WriterInterface
     {
         foreach ($batch as $command) {
             /** @var CommandInterface $command */
-            $this->runSshCmd($command->__toString());
+            $this->runSshCmd($command);
         }
     }
 

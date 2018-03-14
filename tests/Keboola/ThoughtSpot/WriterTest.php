@@ -49,8 +49,8 @@ class WriterTest extends TestCase
                         'default' => null
                     ],
                     [
-                        'name' => 'name',
-                        'dbName' => 'name',
+                        'name' => 'value',
+                        'dbName' => 'value',
                         'type' => 'varchar',
                         'size' => 255,
                         'nullable' => null,
@@ -91,8 +91,8 @@ class WriterTest extends TestCase
                     'default' => null
                 ],
                 [
-                    'name' => 'name',
-                    'dbName' => 'name',
+                    'name' => 'value',
+                    'dbName' => 'value',
                     'type' => 'varchar',
                     'size' => 255,
                     'nullable' => null,
@@ -108,9 +108,9 @@ class WriterTest extends TestCase
             new WriteData($dbParams, $dstFile, $table)
         ]);
 
-        $res = $conn->fetchAll("SELECT id, name FROM country");
+        $res = $conn->fetchAll('SELECT "id", "value" FROM country');
 
-        static::assertEquals('slovakia', $res[198]['name']);
+        static::assertEquals('slovakia', $res[198]['value']);
     }
 
     public function testWriteNullValues()
@@ -139,8 +139,8 @@ class WriterTest extends TestCase
                     'default' => null
                 ],
                 [
-                    'name' => 'name',
-                    'dbName' => 'name',
+                    'name' => 'value',
+                    'dbName' => 'value',
                     'type' => 'varchar',
                     'size' => 255,
                     'nullable' => null,
@@ -156,9 +156,9 @@ class WriterTest extends TestCase
             new WriteData($dbParams, $dstFile, $table)
         ]);
 
-        $res = $conn->fetchAll("SELECT id, name FROM country");
+        $res = $conn->fetchAll('SELECT "id", "value" FROM country');
 
-        static::assertEmpty($res[201]['name']);
+        static::assertEmpty($res[201]['value']);
     }
 
     private function initConfig()
