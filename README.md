@@ -1,5 +1,6 @@
 # ThoughtSpot Writer
-![Travis Build](https://travis-ci.org/keboola/thoughtspot-writer.svg?branch=master)
+
+[![Build Status](https://travis-ci.org/keboola/thoughtspot-writer.svg?branch=master)](https://travis-ci.org/keboola/thoughtspot-writer)
 
 Writes data to [Thoughtspot](https://thoughtspot.com) using the [TSLOAD cli tool](https://docs.thoughtspot.com/4.4/reference/data-importer-ref.html) and [TQL commands](https://docs.thoughtspot.com/4.4/reference/sql-cli-commands.html).
 These commands are executed on the server through SSH connection. Therefor SSH credentials are needed to connect to the server instance.
@@ -73,4 +74,3 @@ These commands are executed on the server through SSH connection. Therefor SSH c
 
 4. Develop using TDD:
     `docker-compose run --rm tests`
-    
