@@ -3,6 +3,7 @@
 namespace Keboola\ThoughtSpot;
 
 use Keboola\Csv\CsvFile;
+use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Logger;
 use Keboola\ThoughtSpot\Command\CreateTable;
 use Keboola\ThoughtSpot\Command\DropTable;
@@ -24,6 +25,26 @@ class WriterTest extends TestCase
         $conn = $writer->getConnection();
 
         $this->assertNotNull($conn);
+    }
+
+    public function testInvalidDatabase(): void
+    {
+        $dbConfig = $this->config['parameters']['db'];
+        $dbConfig['database'] = 'fakeDatabaseName';
+
+        $this->expectException(UserException::class);
+        $this->expectExceptionMessage('Database "fakeDatabaseName" does not exists');
+        new Writer($dbConfig, new Logger('test'));
+    }
+
+    public function testInvalidSchema(): void
+    {
+        $dbConfig = $this->config['parameters']['db'];
+        $dbConfig['schema'] = 'fakeSchemaName';
+
+        $this->expectException(UserException::class);
+        $this->expectExceptionMessage('Schema "fakeSchemaName" does not exists');
+        new Writer($dbConfig, new Logger('test'));
     }
 
     public function testCreate()
