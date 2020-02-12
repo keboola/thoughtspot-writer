@@ -19,9 +19,13 @@ class Connection
 
         $database = $options['database'];
         $serverList = sprintf('%s %s', $options['host'], '12345');
-        $schema = empty($options['schema']) ? 'falcon_default_schema' : $options['schema'];
 
-        $dsn = "Driver={ThoughtSpot(x64)};Database=$database;SERVERLIST=$serverList;SCHEMA=$schema";
+        $dsn = sprintf(
+            "Driver={ThoughtSpot(x64)};Database=%s;SERVERLIST=%s;SCHEMA=%s",
+            $database,
+            $serverList,
+            $options['schema']
+        );
         $this->connection = odbc_connect($dsn, $options['user'], $options['#password']);
     }
 
