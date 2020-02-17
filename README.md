@@ -52,6 +52,21 @@ These commands are executed on the server through SSH connection. Therefor SSH c
         ]
       }
     ]
+  },
+  "storage": {
+    "input": {
+      "tables": [
+        {
+          "source": "simple",
+          "destination": "simple.csv",
+          "columns": [
+            "id",
+            "name",
+            "glasses"
+          ]
+        }
+      ]
+    }
   }
 }
 ```
@@ -71,6 +86,9 @@ These commands are executed on the server through SSH connection. Therefor SSH c
     SSH_USER=
     SSH_PASSWORD=
     ```
+
+3. Build image:
+    `docker-compose build`
 
 4. Develop using TDD:
     `docker-compose run --rm tests`
