@@ -36,14 +36,22 @@ class Writer extends BaseWriter implements WriterInterface
             $this->checkDatabaseExists($dbParams);
         } catch (DatabaseNotExistsException $exception) {
             if (!$this->createDatabase($dbParams)) {
-                throw new UserException($exception->getMessage(), 0, $exception);
+                throw new UserException(
+                    sprintf('Unable to create database "%s"', $dbParams['database']),
+                    0,
+                    $exception
+                );
             }
         }
         try {
             $this->checkSchemaExists($dbParams);
         } catch (SchemaNotExistsException $exception) {
             if (!$this->createSchema($dbParams)) {
-                throw new UserException($exception->getMessage(), 0, $exception);
+                throw new UserException(
+                    sprintf('Unable to create schema "%s"', $dbParams['schema']),
+                    0,
+                    $exception
+                );
             }
         }
     }
