@@ -8,9 +8,13 @@ use Keboola\DbWriter\Logger;
 use Keboola\DbWriter\Writer as BaseWriter;
 use Keboola\DbWriter\WriterInterface;
 use Keboola\ThoughtSpot\Command\CommandInterface;
+use Keboola\ThoughtSpot\Command\CreateDatabase;
+use Keboola\ThoughtSpot\Command\CreateSchema;
 use Keboola\ThoughtSpot\Command\DropTable;
 use Keboola\ThoughtSpot\Command\ShowDatabases;
 use Keboola\ThoughtSpot\Command\ShowSchemas;
+use Keboola\ThoughtSpot\Exception\DatabaseNotExistsException;
+use Keboola\ThoughtSpot\Exception\SchemaNotExistsException;
 use Symfony\Component\Process\Process;
 
 class Writer extends BaseWriter implements WriterInterface
@@ -28,12 +32,23 @@ class Writer extends BaseWriter implements WriterInterface
 
         parent::__construct($dbParams, $logger);
 
-        $this->checkDatabaseExists($dbParams);
-
-        $this->checkSchemaExists($dbParams);
+        try {
+            $this->checkDatabaseExists($dbParams);
+        } catch (DatabaseNotExistsException $exception) {
+            if (!$this->createDatabase($dbParams)) {
+                throw new UserException($exception->getMessage(), 0, $exception);
+            }
+        }
+        try {
+            $this->checkSchemaExists($dbParams);
+        } catch (SchemaNotExistsException $exception) {
+            if (!$this->createSchema($dbParams)) {
+                throw new UserException($exception->getMessage(), 0, $exception);
+            }
+        }
     }
 
-    private function checkDatabaseExists(array $dbParams): void
+    public function checkDatabaseExists(array $dbParams): bool
     {
         $databases = $this->runSshCmd(
             new ShowDatabases()
@@ -42,11 +57,13 @@ class Writer extends BaseWriter implements WriterInterface
         $databases = preg_split("/\r\n|\n|\r/", $databases);
 
         if (!in_array($dbParams['database'], $databases)) {
-            throw new UserException(sprintf('Database "%s" does not exists', $dbParams['database']));
+            throw new DatabaseNotExistsException(sprintf('Database "%s" does not exists', $dbParams['database']));
         }
+
+        return true;
     }
 
-    private function checkSchemaExists(array $dbParams): void
+    public function checkSchemaExists(array $dbParams): bool
     {
         $schemas = $this->runSshCmd(
             new ShowSchemas($dbParams['database'])
@@ -63,12 +80,14 @@ class Writer extends BaseWriter implements WriterInterface
         );
         array_walk($schemas, function (&$val) {
             list($schemaName) = explode('|', $val);
-            $val = $schemaName;
+            $val = trim($schemaName);
         });
 
         if (!in_array($dbParams['schema'], $schemas)) {
-            throw new UserException(sprintf('Schema "%s" does not exists', $dbParams['schema']));
+            throw new SchemaNotExistsException(sprintf('Schema "%s" does not exists', $dbParams['schema']));
         }
+
+        return true;
     }
 
     public function createConnection($dbParams)
@@ -76,7 +95,7 @@ class Writer extends BaseWriter implements WriterInterface
         return new Connection($dbParams);
     }
 
-    private function runSshCmd($cmd)
+    private function runSshCmd($cmd): Process
     {
         $this->logger->info(sprintf('Executing command "%s"', $cmd));
 
@@ -105,6 +124,22 @@ class Writer extends BaseWriter implements WriterInterface
         }
 
         return $process;
+    }
+
+    private function createDatabase($dbParams): bool
+    {
+        $process = $this->runSshCmd(
+            new CreateDatabase($dbParams['database'])
+        );
+        return $process->getExitCode() === 0;
+    }
+
+    private function createSchema($dbParams): bool
+    {
+        $process = $this->runSshCmd(
+            new CreateSchema($dbParams['database'], $dbParams['schema'])
+        );
+        return $process->getExitCode() === 0;
     }
 
     public function uploadFile(CsvFile $csv)
