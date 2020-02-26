@@ -27,24 +27,16 @@ class WriterTest extends TestCase
         $this->assertNotNull($conn);
     }
 
-    public function testInvalidDatabase(): void
+    public function testCreateDatabaseAndSchema(): void
     {
         $dbConfig = $this->config['parameters']['db'];
-        $dbConfig['database'] = 'fakeDatabaseName';
+        $dbConfig['database'] = 'nonexistDatabaseName1';
+        $dbConfig['schema'] = 'nonexistSchemaName1';
 
-        $this->expectException(UserException::class);
-        $this->expectExceptionMessage('Database "fakeDatabaseName" does not exists');
-        new Writer($dbConfig, new Logger('test'));
-    }
+        $writer = new Writer($dbConfig, new Logger('test'));
 
-    public function testInvalidSchema(): void
-    {
-        $dbConfig = $this->config['parameters']['db'];
-        $dbConfig['schema'] = 'fakeSchemaName';
-
-        $this->expectException(UserException::class);
-        $this->expectExceptionMessage('Schema "fakeSchemaName" does not exists');
-        new Writer($dbConfig, new Logger('test'));
+        $this->assertTrue($writer->checkDatabaseExists($dbConfig));
+        $this->assertTrue($writer->checkSchemaExists($dbConfig));
     }
 
     public function testCreate()
