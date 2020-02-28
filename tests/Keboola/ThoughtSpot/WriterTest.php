@@ -5,8 +5,11 @@ namespace Keboola\ThoughtSpot;
 use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Logger;
+use Keboola\ThoughtSpot\Command\CreateDatabase;
+use Keboola\ThoughtSpot\Command\CreateSchema;
 use Keboola\ThoughtSpot\Command\CreateTable;
 use Keboola\ThoughtSpot\Command\DropTable;
+use Keboola\ThoughtSpot\Command\ShowSchemas;
 use Keboola\ThoughtSpot\Command\WriteData;
 use PHPUnit\Framework\TestCase;
 
@@ -27,11 +30,19 @@ class WriterTest extends TestCase
         $this->assertNotNull($conn);
     }
 
+    /**
+     * @dataProvider getCommands
+     */
+    public function testTqlCommand($command, $expectCommand): void
+    {
+        $this->assertEquals($expectCommand, (string) $command);
+    }
+
     public function testCreateDatabaseAndSchema(): void
     {
         $dbConfig = $this->config['parameters']['db'];
-        $dbConfig['database'] = 'nonexistDatabaseName1';
-        $dbConfig['schema'] = 'nonexistSchemaName1';
+        $dbConfig['database'] = 'nonexist-DatabaseName';
+        $dbConfig['schema'] = 'nonexist-SchemaName';
 
         $writer = new Writer($dbConfig, new Logger('test'));
 
@@ -191,5 +202,27 @@ class WriterTest extends TestCase
     protected function getWriter($dbParams)
     {
         return new Writer($dbParams, new Logger(APP_NAME));
+    }
+
+    public function getCommands()
+    {
+        return [
+            [
+                new CreateDatabase('TEST'),
+                'echo \'CREATE DATABASE \"TEST\";\' | tql'
+            ],
+            [
+                new CreateSchema('TEST', 'TEST'),
+                'echo \'CREATE SCHEMA \"TEST\".\"TEST\";\' | tql'
+            ],
+            [
+                new ShowSchemas('TEST-TEST'),
+                'echo \'SHOW SCHEMAS \"TEST-TEST\";\' | tql'
+            ],
+            [
+                new DropTable(['database' => 'TEST', 'schema' => 'TEST-TEST'], 'table'),
+                'echo \'DROP TABLE \"TEST\".\"TEST-TEST\".\"table\";\' | tql'
+            ]
+        ];
     }
 }

@@ -8,6 +8,8 @@ class ShowSchemas extends AbstractCommand
 {
     public function __construct($databaseName)
     {
-        $this->command = sprintf('echo \'SHOW SCHEMAS %s;\' | tql', $this->quote($databaseName));
+        $this->command = $this->getTqlCommand(
+            sprintf('SHOW SCHEMAS %s;', $this->quote($databaseName))
+        );
     }
 }

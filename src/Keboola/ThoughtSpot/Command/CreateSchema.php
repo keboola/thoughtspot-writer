@@ -9,6 +9,6 @@ class CreateSchema extends AbstractCommand
     public function __construct(string $databaseName, string $schemaName)
     {
         $this->command = $this->getTqlCommand(
-            sprintf('CREATE SCHEMA "%s"."%s";', $databaseName, $schemaName));
+            sprintf('CREATE SCHEMA %s.%s;', $this->quote($databaseName), $this->quote($schemaName)));
     }
 }

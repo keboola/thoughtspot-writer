@@ -9,6 +9,6 @@ class CreateDatabase extends AbstractCommand
     public function __construct(string $databaseName)
     {
         $this->command = $this->getTqlCommand(
-            sprintf('CREATE DATABASE "%s";', $databaseName));
+            sprintf('CREATE DATABASE %s;', $this->quote($databaseName)));
     }
 }
