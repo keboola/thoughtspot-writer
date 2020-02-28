@@ -30,8 +30,8 @@ class WriterTest extends TestCase
     public function testCreateDatabaseAndSchema(): void
     {
         $dbConfig = $this->config['parameters']['db'];
-        $dbConfig['database'] = 'nonexistDatabaseName1';
-        $dbConfig['schema'] = 'nonexistSchemaName1';
+        $dbConfig['database'] = 'nonexist-DatabaseName';
+        $dbConfig['schema'] = 'nonexist-SchemaName';
 
         $writer = new Writer($dbConfig, new Logger('test'));
 
