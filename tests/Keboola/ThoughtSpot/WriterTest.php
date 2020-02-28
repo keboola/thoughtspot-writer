@@ -5,6 +5,7 @@ namespace Keboola\ThoughtSpot;
 use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Logger;
+use Keboola\ThoughtSpot\Command\AbstractCommand;
 use Keboola\ThoughtSpot\Command\CreateTable;
 use Keboola\ThoughtSpot\Command\DropTable;
 use Keboola\ThoughtSpot\Command\WriteData;
@@ -25,6 +26,15 @@ class WriterTest extends TestCase
         $conn = $writer->getConnection();
 
         $this->assertNotNull($conn);
+    }
+
+    /**
+     * @dataProvider getCommands
+     */
+    public function testTqlCommand($command, $expectCommand): void
+    {
+        $abstractCommand = new AbstractCommand();
+        $this->assertEquals($expectCommand, $abstractCommand->getTqlCommand($command));
     }
 
     public function testCreateDatabaseAndSchema(): void
@@ -191,5 +201,23 @@ class WriterTest extends TestCase
     protected function getWriter($dbParams)
     {
         return new Writer($dbParams, new Logger(APP_NAME));
+    }
+
+    public function getCommands()
+    {
+        return [
+            [
+                'SHOW SCHEMAS "TEST";',
+                'echo \'SHOW SCHEMAS \"TEST\";\' | tql'
+            ],
+            [
+                'SHOW SCHEMAS "TEST-TEST";',
+                'echo \'SHOW SCHEMAS \"TEST-TEST\";\' | tql'
+            ],
+            [
+                'SHOW SCHEMAS TEST;',
+                'echo \'SHOW SCHEMAS TEST;\' | tql'
+            ]
+        ];
     }
 }
