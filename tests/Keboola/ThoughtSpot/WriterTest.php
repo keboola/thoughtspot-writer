@@ -5,9 +5,11 @@ namespace Keboola\ThoughtSpot;
 use Keboola\Csv\CsvFile;
 use Keboola\DbWriter\Exception\UserException;
 use Keboola\DbWriter\Logger;
-use Keboola\ThoughtSpot\Command\AbstractCommand;
+use Keboola\ThoughtSpot\Command\CreateDatabase;
+use Keboola\ThoughtSpot\Command\CreateSchema;
 use Keboola\ThoughtSpot\Command\CreateTable;
 use Keboola\ThoughtSpot\Command\DropTable;
+use Keboola\ThoughtSpot\Command\ShowSchemas;
 use Keboola\ThoughtSpot\Command\WriteData;
 use PHPUnit\Framework\TestCase;
 
@@ -33,8 +35,7 @@ class WriterTest extends TestCase
      */
     public function testTqlCommand($command, $expectCommand): void
     {
-        $abstractCommand = new AbstractCommand();
-        $this->assertEquals($expectCommand, $abstractCommand->getTqlCommand($command));
+        $this->assertEquals($expectCommand, (string) $command);
     }
 
     public function testCreateDatabaseAndSchema(): void
@@ -207,16 +208,20 @@ class WriterTest extends TestCase
     {
         return [
             [
-                'SHOW SCHEMAS "TEST";',
-                'echo \'SHOW SCHEMAS \"TEST\";\' | tql'
+                new CreateDatabase('TEST'),
+                'echo \'CREATE DATABASE \"TEST\";\' | tql'
             ],
             [
-                'SHOW SCHEMAS "TEST-TEST";',
+                new CreateSchema('TEST', 'TEST'),
+                'echo \'CREATE SCHEMA \"TEST\".\"TEST\";\' | tql'
+            ],
+            [
+                new ShowSchemas('TEST-TEST'),
                 'echo \'SHOW SCHEMAS \"TEST-TEST\";\' | tql'
             ],
             [
-                'SHOW SCHEMAS TEST;',
-                'echo \'SHOW SCHEMAS TEST;\' | tql'
+                new DropTable(['database' => 'TEST', 'schema' => 'TEST-TEST'], 'table'),
+                'echo \'DROP TABLE \"TEST\".\"TEST-TEST\".\"table\";\' | tql'
             ]
         ];
     }
