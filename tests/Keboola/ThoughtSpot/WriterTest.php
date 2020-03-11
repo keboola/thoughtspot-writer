@@ -17,6 +17,8 @@ class WriterTest extends TestCase
 {
     private $config;
 
+    private $defaultSchema = 'falcon_default_schema';
+
     public function setUp()
     {
         $this->config = $this->initConfig();
@@ -187,12 +189,17 @@ class WriterTest extends TestCase
 
     private function initConfig()
     {
+        $schema = getenv('DB_SCHEMA');
+        if (empty($schema)) {
+            $schema = $this->defaultSchema;
+        }
         $config = [];
         $config['parameters']['db']['user'] = getenv('DB_USER');
         $config['parameters']['db']['#password'] = getenv('DB_PASSWORD');
         $config['parameters']['db']['host'] = getenv('DB_HOST');
         $config['parameters']['db']['port'] = getenv('DB_PORT');
         $config['parameters']['db']['database'] = getenv('DB_DATABASE');
+        $config['parameters']['db']['schema'] = $schema;
         $config['parameters']['db']['sshUser'] = getenv('SSH_USER');
         $config['parameters']['db']['#sshPassword'] = getenv('SSH_PASSWORD');
 
@@ -222,6 +229,15 @@ class WriterTest extends TestCase
             [
                 new DropTable(['database' => 'TEST', 'schema' => 'TEST-TEST'], 'table'),
                 'echo \'DROP TABLE \"TEST\".\"TEST-TEST\".\"table\";\' | tql'
+            ],
+            [
+                new WriteData(
+                    ['database' => 'TEST-DTB', 'schema' => 'TEST-SCHEMA'],
+                    'testFile',
+                    ['dbName' => 'TEST-TABLE', 'incremental' => true]
+                ),
+                'tsload --target_database "TEST-DTB" --target_schema "TEST-SCHEMA" --target_table "TEST-TABLE"'.
+                ' --source_file /tmp/testFile --v 1 --field_separator "," --has_header_row'
             ]
         ];
     }
