@@ -21,6 +21,8 @@ class FunctionalTest extends TestCase
 
     protected $tmpDataDir = '/tmp/wr-thoughtspot/data';
 
+    private $defaultSchema = 'falcon_default_schema';
+
     public function setUp()
     {
         $fs = new Filesystem();
@@ -76,13 +78,17 @@ class FunctionalTest extends TestCase
         $srcConfigPath = $this->dataDir . '/config.json';
         $dstConfigPath = $this->tmpDataDir . '/config.json';
         $config = json_decode(file_get_contents($srcConfigPath), true);
-
+        $schema = getenv('DB_SCHEMA');
+        if (empty($schema)) {
+            $schema = $this->defaultSchema;
+        }
         $config['parameters']['data_dir'] = $this->tmpDataDir;
         $config['parameters']['db']['user'] = getenv('DB_USER');
         $config['parameters']['db']['#password'] = getenv('DB_PASSWORD');
         $config['parameters']['db']['host'] = getenv('DB_HOST');
         $config['parameters']['db']['port'] = getenv('DB_PORT');
         $config['parameters']['db']['database'] = getenv('DB_DATABASE');
+        $config['parameters']['db']['schema'] = $schema;
         $config['parameters']['db']['sshUser'] = getenv('SSH_USER');
         $config['parameters']['db']['#sshPassword'] = getenv('SSH_PASSWORD');
 
