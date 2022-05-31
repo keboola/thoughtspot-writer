@@ -92,3 +92,7 @@ These commands are executed on the server through SSH connection. Therefor SSH c
 
 4. Develop using TDD:
     `docker-compose run --rm tests`
+
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.
